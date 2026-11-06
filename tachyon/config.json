@@ -1,0 +1,28 @@
+{
+  "broker": {
+    "host": "localhost",
+    "port": 1883,
+    "topic": "suelo/#"
+  },
+  "alertas": {
+    "humedad_baja_pct": 20,
+    "umbral_critico_pct": 10
+  },
+  "api": {
+    "host": "0.0.0.0",
+    "port": 5001
+  },
+  "almacenamiento": {
+    "db_path": "data/suelo.db"
+  },
+  "logging": {
+    "log_path": "logs/sistema.log",
+    "max_bytes": 10485760,
+    "backup_count": 5
+  },
+  "plataforma": {
+    "url": "",
+    "token": "",
+    "habilitado": false
+  }
+}

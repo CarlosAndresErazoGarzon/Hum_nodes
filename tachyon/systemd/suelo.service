@@ -1,0 +1,16 @@
+[Unit]
+Description=Monitoreo de Humedad de Suelo (nodos Particle -> Tachyon)
+After=network.target mosquitto.service
+Wants=mosquitto.service
+
+[Service]
+Type=simple
+WorkingDirectory=/root/suelo-service
+ExecStart=/usr/bin/python3 /root/suelo-service/main.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

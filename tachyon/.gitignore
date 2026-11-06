@@ -1,0 +1,9 @@
+# Datos y logs generados en tiempo de ejecucion (no versionar)
+data/
+logs/
+*.db
+*.log
+
+# Python
+__pycache__/
+*.pyc
