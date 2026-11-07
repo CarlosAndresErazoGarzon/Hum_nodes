@@ -7,7 +7,17 @@ import time
 
 
 class AlertEngine:
+    """Decide si una lectura de humedad merece alerta, y evita repetirla.
+
+    Las alertas se evaluan en el nodo Python (la Tachyon), no en el
+    firmware: el nodo solo mide y publica, toda la logica de "esto es
+    preocupante" vive aqui, centralizada, para poder cambiar umbrales sin
+    reflashear ninguna placa.
+    """
+
     def __init__(self, umbral_bajo=20, umbral_critico=10, logger=None):
+        """umbral_bajo/umbral_critico son % de humedad; por debajo de cada
+        uno se considera ese nivel de alerta (critico manda sobre bajo)."""
         self.umbral_bajo = umbral_bajo
         self.umbral_critico = umbral_critico
         self.logger = logger
@@ -15,6 +25,13 @@ class AlertEngine:
         self.historial_alertas = []  # para GET /alarmas
 
     def evaluar(self, data):
+        """Se llama con cada lectura que llega (una por sensor, cada ~10s).
+
+        Devuelve una alerta nueva (dict) SOLO si el nivel de ese nodo acaba
+        de cambiar respecto a la lectura anterior; si sigue igual de
+        critico/bajo/normal que antes, devuelve None. Asi no se genera una
+        alerta identica en cada ciclo mientras el sensor sigue seco.
+        """
         node = data.get("node")
         pct = data.get("humedad_pct")
         if node is None or pct is None:
@@ -53,6 +70,9 @@ class AlertEngine:
         return None
 
     def estado_actual(self):
+        """Alertas activas ahora mismo (para GET /alarmas): un nodo aparece
+        aqui mientras su nivel sea "bajo" o "critico"; desaparece solo en
+        cuanto vuelve a humedad normal."""
         return [
             {"node": n, "nivel": lvl}
             for n, lvl in self.activas.items()

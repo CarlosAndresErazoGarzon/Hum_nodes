@@ -11,7 +11,15 @@ import threading
 
 
 def start_listener(host, port, topic, out_queue, logger):
+    """Arranca el hilo MQTT y vuelve de inmediato (no bloquea main.py).
+
+    out_queue es una queue.Queue compartida con el hilo principal: este hilo
+    solo mete lecturas ahi adentro, nunca toca SQLite ni alertas
+    directamente (eso lo hace quien lea de la cola, en main.py).
+    """
     def _run():
+        # mosquitto_sub -v imprime "topico payload" por cada mensaje que
+        # llega al topico suscrito; -t 'suelo/#' matchea cualquier nodo.
         cmd = ["mosquitto_sub", "-h", host, "-p", str(port), "-t", topic, "-v"]
         logger.info(f"Lanzando: {' '.join(cmd)}")
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,

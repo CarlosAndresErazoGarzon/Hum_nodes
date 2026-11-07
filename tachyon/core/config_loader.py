@@ -8,5 +8,8 @@ import json
 
 
 def load_config(path="config.json"):
+    """Lee config.json y lo devuelve como dict. Se llama una sola vez, al
+    arrancar main.py; si hay que cambiar un umbral o un puerto, se edita el
+    archivo y se reinicia el servicio (no hay recarga en caliente)."""
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)

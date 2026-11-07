@@ -13,9 +13,16 @@ import urllib.request
 
 
 def start_forwarder(url, token, in_queue, logger, habilitado=True):
+    """Arranca el hilo de reenvio hacia la plataforma web externa.
+
+    in_queue la llena main.py con cada lectura y cada alerta ya procesada.
+    Si habilitado=False (el caso de hoy, sin internet en el sitio), el hilo
+    igual corre y sigue vaciando la cola, pero no intenta ninguna llamada de
+    red: asi la cola nunca se llena sin limite mientras tanto.
+    """
     def _run():
         while True:
-            item = in_queue.get()
+            item = in_queue.get()  # bloquea hasta que main.py encole algo
             if not habilitado or not url:
                 continue
             try:

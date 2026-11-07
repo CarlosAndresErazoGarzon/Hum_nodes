@@ -6,7 +6,21 @@ import time
 
 
 class Storage:
+    """Acceso a la base SQLite de lecturas.
+
+    Una sola tabla (`lecturas`) con una fila por mensaje MQTT insertado. No
+    hay tabla de "nodos" aparte: `node` es simplemente el string que publico
+    el firmware (p. ej. "nodoA-s0"), asi que cada sensor fisico se trata como
+    un nodo independiente sin tener que registrarlo en ningun lado antes.
+    """
+
     def __init__(self, db_path="data/suelo.db"):
+        """Abre (o crea) la base de datos en db_path y asegura el esquema.
+
+        check_same_thread=False porque varios hilos (el principal al insertar,
+        el de la API al leer) comparten esta misma conexion; self.lock evita
+        que se pisen entre si (sqlite3 no es thread-safe por si solo).
+        """
         db_dir = os.path.dirname(db_path)
         if db_dir:
             os.makedirs(db_dir, exist_ok=True)
@@ -26,6 +40,10 @@ class Storage:
         self.conn.commit()
 
     def insert(self, data):
+        """Guarda una lectura. `data` es el dict ya decodificado del JSON MQTT
+        (node, profundidad, raw, humedad_pct); el timestamp lo pone esta
+        funcion (hora de insercion en la Tachyon, no la del nodo, que no
+        manda reloj propio)."""
         with self.lock:
             self.conn.execute(
                 "INSERT INTO lecturas (node, profundidad, raw, humedad_pct, ts) VALUES (?,?,?,?,?)",
@@ -74,11 +92,14 @@ class Storage:
             return [dict(zip(cols, row)) for row in cur.fetchall()]
 
     def contar(self):
+        """Total de filas insertadas desde siempre (para GET /status)."""
         with self.lock:
             cur = self.conn.execute("SELECT COUNT(*) FROM lecturas")
             return cur.fetchone()[0]
 
     def nodos_distintos(self):
+        """Lista de todos los `node` que alguna vez publicaron algo (para
+        GET /status, y para poblar el selector de sensores del dashboard)."""
         with self.lock:
             cur = self.conn.execute("SELECT DISTINCT node FROM lecturas ORDER BY node")
             return [r[0] for r in cur.fetchall()]

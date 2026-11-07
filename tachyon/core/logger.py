@@ -5,6 +5,10 @@ from logging.handlers import RotatingFileHandler
 
 
 def get_logger(name, log_path="logs/sistema.log", max_bytes=10 * 1024 * 1024, backup_count=5):
+    """Logger con dos salidas: consola (para verlo en vivo con `journalctl -f`
+    o corriendo en primer plano) y archivo rotativo (para no perder el
+    historial ni llenar el disco: al llegar a max_bytes, rota y guarda hasta
+    backup_count archivos viejos, borrando los mas antiguos)."""
     log_dir = os.path.dirname(log_path)
     if log_dir:
         os.makedirs(log_dir, exist_ok=True)
